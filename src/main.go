@@ -34,10 +34,12 @@ var (
 )
 
 func main() {
+	log.Println("loading environment variables . . .")
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, relying on system environment variables!")
 	}
 
+	log.Println("connecting to redis client . . .")
 	redisClient = redis.NewClient(&redis.Options{
 		Addr:     redisAddr,
 		Password: redisPassword,
@@ -63,11 +65,13 @@ func resolveHandler(res http.ResponseWriter, req *http.Request) {
 	}
 
 	var urls []string
-	dec := json.NewDecoder(req.Body)
-	if err := dec.Decode(&urls); err != nil {
+
+	decoder := json.NewDecoder(req.Body)
+	if err := decoder.Decode(&urls); err != nil {
 		http.Error(res, "invalid JSON body; expected array of strings", http.StatusBadRequest)
 		return
 	}
+
 	if len(urls) == 0 {
 		res.Header().Set("Content-Type", "application/json")
 		res.Write([]byte("{}"))
@@ -76,12 +80,12 @@ func resolveHandler(res http.ResponseWriter, req *http.Request) {
 
 	sem := make(chan struct{}, maxConcurrency)
 	var waitGroup sync.WaitGroup
-	mu := sync.Mutex{}
+	mutex := sync.Mutex{}
 	result := make(map[string]string)
 
-	for _, u := range urls {
-		u := strings.TrimSpace(u)
-		if u == "" {
+	for _, url := range urls {
+		url := strings.TrimSpace(url)
+		if url == "" {
 			continue
 		}
 
@@ -91,15 +95,15 @@ func resolveHandler(res http.ResponseWriter, req *http.Request) {
 			sem <- struct{}{}
 			defer func() { <-sem }()
 
-			streamURL, err := resolveWithCache(url)
+			streamUrl, err := resolveWithCache(url)
 			if err != nil {
 				log.Printf("could not resolve %s: %v", url, err)
 				return
 			}
-			mu.Lock()
-			result[url] = streamURL
-			mu.Unlock()
-		}(u)
+			mutex.Lock()
+			result[url] = streamUrl
+			mutex.Unlock()
+		}(url)
 	}
 
 	waitGroup.Wait()
