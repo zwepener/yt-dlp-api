@@ -24,20 +24,32 @@ var (
 )
 
 var (
-	redisAddr      = getEnv("REDIS_ADDR", "redis:6379")
-	redisPassword  = getEnv("REDIS_PASSWORD", "")
-	cacheTTL       = getEnvDuration("CACHE_TTL", 24*time.Hour)
-	serverAddr     = getEnv("SERVER_ADDR", ":8080")
-	ytDlpCmd       = getEnv("YTDLP_CMD", "yt-dlp")
-	perCallTimeout = getEnvDuration("YTDLP_TIMEOUT", 15*time.Second)
-	maxConcurrency = getEnvInt("MAX_CONCURRENCY", 8)
+	redisAddr      string
+	redisPassword  string
+	cacheTTL       time.Duration
+	serverAddr     string
+	ytDlpCmd       string
+	perCallTimeout time.Duration
+	maxConcurrency int
 )
 
-func main() {
+func init_env() {
 	log.Println("loading environment variables . . .")
-	if err := godotenv.Load(); err != nil {
+	if err := godotenv.Load(".env"); err != nil {
 		log.Println("No .env file found, relying on system environment variables!")
 	}
+
+	redisAddr = getEnv("REDIS_ADDR", "redis:6379")
+	redisPassword = getEnv("REDIS_PASSWORD", "")
+	cacheTTL = getEnvDuration("CACHE_TTL", 24*time.Hour)
+	serverAddr = getEnv("SERVER_ADDR", ":8080")
+	ytDlpCmd = getEnv("YTDLP_CMD", "yt-dlp")
+	perCallTimeout = getEnvDuration("YTDLP_TIMEOUT", 15*time.Second)
+	maxConcurrency = getEnvInt("MAX_CONCURRENCY", 8)
+}
+
+func main() {
+	init_env()
 
 	log.Println("connecting to redis client . . .")
 	redisClient = redis.NewClient(&redis.Options{
