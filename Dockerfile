@@ -12,7 +12,6 @@ FROM alpine:latest as base
 
 
 FROM base as yt-dlp
-
 WORKDIR /app
 
 RUN apk add --no-cache curl
@@ -21,9 +20,6 @@ RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_lin
 
 
 FROM base AS runner
-
-RUN useradd --no-log-init --create-home yt-dlp
-
 WORKDIR /app
 
 COPY --from=yt-dlp /app/yt-dlp /usr/bin/yt-dlp
@@ -31,8 +27,6 @@ RUN chmod +x /usr/bin/yt-dlp
 
 COPY --from=builder /app/api /app/api
 RUN chmod +x /app/api
-
-USER yt-dlp
 
 EXPOSE 8080
 
