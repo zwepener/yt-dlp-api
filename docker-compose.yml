@@ -1,0 +1,34 @@
+services:
+  kv:
+    image: redis:alpine
+    container_name: yt-dlp-kv
+    env_file: .env
+    volumes:
+      - kv-data:/data
+    ports:
+      - "${REDIS_PORT}:6379"
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s 
+
+  api:
+    build: .
+    image: yt-dlp-api
+    container_name: yt-dlp-api
+    depends_on:
+      - kv
+    env_file: .env
+    ports:
+      - "${SERVER_PORT}:8080"
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+volumes:
+  kv-data:
