@@ -37,5 +37,5 @@ volumes:
 
 networks:
   default:
-    external:
-      name: shared-net
+    external: true
+    name: shared-net
