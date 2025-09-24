@@ -5,8 +5,7 @@ COPY go.mod .
 RUN go mod download
 
 COPY . .
-# RUN CGO_ENABLED=0 GOOS=linux go build src/main.go -trimpath -ldflags="-s -w" -o /app/api
-RUN go build src/main.go -o /app/api
+RUN CGO_ENABLED=0 GOOS=linux go build src/main.go -trimpath -ldflags="-s -w" -o /app/api
 
 
 FROM alpine:latest as base
