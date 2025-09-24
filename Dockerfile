@@ -8,27 +8,10 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build ./src/main.go
 
-
-FROM alpine:latest AS base
-
-
-FROM base as yt-dlp
+FROM python:3.13-alpine AS runner
 WORKDIR /app
 
-RUN apk add --no-cache curl
-
-RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -o yt-dlp
-
-
-FROM base AS runner
-WORKDIR /app
-
-RUN apk add --no-cache \
-    https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.35-r0/glibc-2.35-r0.apk \
-    https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.35-r0/glibc-bin-2.35-r0.apk
-
-COPY --from=yt-dlp /app/yt-dlp /usr/bin/yt-dlp
-RUN chmod +x /usr/bin/yt-dlp
+RUN pip install --no-cache-dir yt-dlp
 
 COPY --from=builder /app/main /app/api
 RUN chmod +x /app/api
