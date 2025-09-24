@@ -39,7 +39,7 @@ func init_env() {
 		log.Println("No .env file found, relying on system environment variables!")
 	}
 
-	redisAddr = getEnv("REDIS_ADDR", "redis:6379")
+	redisAddr = getEnv("REDIS_ADDR", "localhost:6379")
 	redisPassword = getEnv("REDIS_PASSWORD", "")
 	cacheTTL = getEnvDuration("CACHE_TTL", 24*time.Hour)
 	serverAddr = getEnv("SERVER_ADDR", ":8080")
