@@ -15,7 +15,9 @@ services:
         window: 120s 
 
   api:
-    build: .
+    build: 
+      dockerfile: Dockerfile
+      context: .
     image: yt-dlp-api
     container_name: yt-dlp-api
     depends_on:
