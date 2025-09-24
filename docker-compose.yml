@@ -34,3 +34,8 @@ services:
 
 volumes:
   kv-data:
+
+networks:
+  default:
+    external:
+      name: shared-net
