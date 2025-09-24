@@ -41,7 +41,7 @@ func init_env() {
 
 	redisAddr = getEnv("REDIS_ADDR", "localhost:6379")
 	redisPassword = getEnv("REDIS_PASSWORD", "")
-	cacheTTL = getEnvDuration("CACHE_TTL", 24*time.Hour)
+	cacheTTL = getEnvDuration("CACHE_TTL", 6*time.Hour)
 	serverAddr = getEnv("SERVER_ADDR", ":8080")
 	ytDlpCmd = getEnv("YTDLP_CMD", "yt-dlp")
 	perCallTimeout = getEnvDuration("YTDLP_TIMEOUT", 15*time.Second)
