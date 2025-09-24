@@ -7,7 +7,7 @@ RUN go mod download
 
 COPY . .
 # RUN CGO_ENABLED=0 GOOS=linux go build ./src/main.go -trimpath -ldflags="-s -w" -o /app/api
-RUN CGO_ENABLED=0 GOOS=linux go build ./src/main.go -o api
+RUN CGO_ENABLED=0 GOOS=linux go build ./src/main.go
 
 
 FROM alpine:latest as base
@@ -27,7 +27,7 @@ WORKDIR /app
 COPY --from=yt-dlp /app/yt-dlp /usr/bin/yt-dlp
 RUN chmod +x /usr/bin/yt-dlp
 
-COPY --from=builder /app/api /app/api
+COPY --from=builder /app/main /app/api
 RUN chmod +x /app/api
 
 EXPOSE 8080
