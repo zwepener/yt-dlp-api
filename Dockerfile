@@ -6,7 +6,7 @@ COPY go.sum .
 RUN go mod download
 
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build ./src/main.go -trimpath -ldflags="-s -w"
+RUN CGO_ENABLED=0 GOOS=linux go build ./src/main.go
 
 
 FROM alpine:latest AS base
