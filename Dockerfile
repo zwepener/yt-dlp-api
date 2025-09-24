@@ -24,8 +24,8 @@ FROM base AS runner
 WORKDIR /app
 
 RUN apk add --no-cache \
-    https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.35-r1/glibc-2.35-r1.apk \
-    https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.35-r1/glibc-bin-2.35-r1.apk
+    https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.35-r0/glibc-2.35-r0.apk \
+    https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.35-r0/glibc-bin-2.35-r0.apk
 
 COPY --from=yt-dlp /app/yt-dlp /usr/bin/yt-dlp
 RUN chmod +x /usr/bin/yt-dlp
