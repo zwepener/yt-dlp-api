@@ -10,7 +10,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build ./src/main.go
 
 
-FROM alpine:latest as base
+FROM alpine:latest AS base
 
 
 FROM base as yt-dlp
