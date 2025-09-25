@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"strings"
@@ -90,32 +91,33 @@ func resolveHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	sem := make(chan struct{}, maxConcurrency)
+	sem := make(chan struct{}, maxConcurrency) // sem = semaphore
 	var waitGroup sync.WaitGroup
 	mutex := sync.Mutex{}
 	result := make(map[string]string)
 
-	for _, url := range urls {
-		url := strings.TrimSpace(url)
-		if url == "" {
+	for _, url_ := range urls {
+		url_, err := cleanUrl(url_)
+		if err != nil {
 			continue
 		}
 
 		waitGroup.Add(1)
-		go func(url string) {
+		go func(url_ string) {
 			defer waitGroup.Done()
 			sem <- struct{}{}
 			defer func() { <-sem }()
 
-			streamUrl, err := resolveWithCache(url)
+			streamUrl, err := resolveWithCache(url_)
 			if err != nil {
-				log.Printf("could not resolve %s: %v", url, err)
+				log.Printf("could not resolve %s: %v", url_, err)
 				return
 			}
+
 			mutex.Lock()
-			result[url] = streamUrl
+			result[url_] = streamUrl
 			mutex.Unlock()
-		}(url)
+		}(url_)
 	}
 
 	waitGroup.Wait()
@@ -127,29 +129,29 @@ func resolveHandler(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func resolveWithCache(url string) (string, error) {
-	cacheKey := "yt-dlp:" + url
+func resolveWithCache(url_ string) (string, error) {
+	cacheKey := "yt-dlp:" + url_
 
 	val, err := redisClient.Get(ctx, cacheKey).Result()
 	if err == nil && strings.TrimSpace(val) != "" {
 		return val, nil
 	}
 
-	streamURL, err := runYtDlp(url)
+	streamURL, err := runYtDlp(url_)
 	if err != nil {
 		return "", err
 	}
 
 	err = redisClient.Set(ctx, cacheKey, streamURL, cacheTTL).Err()
 	if err != nil {
-		log.Printf("warning: failed to set cache for %s: %v", url, err)
+		log.Printf("warning: failed to set cache for %s: %v", url_, err)
 	}
 
 	return streamURL, nil
 }
 
-func runYtDlp(url string) (string, error) {
-	if url == "" {
+func runYtDlp(url_ string) (string, error) {
+	if url_ == "" {
 		return "", errors.New("empty url")
 	}
 
@@ -160,7 +162,7 @@ func runYtDlp(url string) (string, error) {
 		cctx,
 		ytDlpCmd,
 		"--get-url", "--no-playlist", "--no-warnings", "--no-cache-dir",
-		url,
+		url_,
 	)
 
 	stdout, err := cmd.StdoutPipe()
@@ -230,4 +232,36 @@ func getEnvInt(key string, fallback int) int {
 		}
 	}
 	return fallback
+}
+
+/**
+ * Removes unnecessary query parameters from a given url. Primarily for caching purposes
+ * Raises an error if the provided url string is empty or otherwise invalid.
+ */
+func cleanUrl(rawUrl string) (string, error) {
+	rawUrl = strings.TrimSpace(rawUrl)
+	if rawUrl == "" {
+		return "", errors.New("url is empty")
+	}
+
+	url_, err := url.Parse(rawUrl)
+	if err != nil {
+		return "", err
+	}
+
+	junk_params := map[string]bool{
+		"igsh": true, "si": true, "mibextid": true,
+	}
+
+	q := url_.Query()
+
+	for param := range q {
+		if junk_params[param] {
+			q.Del(param)
+		}
+	}
+
+	url_.RawQuery = q.Encode()
+
+	return url_.String(), nil
 }
