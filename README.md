@@ -45,8 +45,8 @@ Environment variables can be set in `.env` or via Docker (see `.env.template` fo
 * [Go 1.22+](https://go.dev/doc/install) (if building locally without Docker)
 * [yt-dlp](https://github.com/yt-dlp/yt-dlp) (if deploying locally without Docker)
 
-#🤝 Contributing
+# 🤝 Contributing
 Contributions are welcome! Feel free to open issues or submit PRs if you’d like to add features or fix bugs.
 
-#📄 License
+# 📄 License
 This project is licensed under the MIT License.
