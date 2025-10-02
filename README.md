@@ -1,5 +1,5 @@
 # 🎵 yt-dlp Stream Resolver API
-A lightweight Golang API that uses yt-dlp to resolve a given video URL (YouTube, etc.) into a direct stream URL.
+A lightweight Golang API that uses [yt-dlp](https://github.com/yt-dlp/yt-dlp) to resolve a given video URL (YouTube, etc.) into a direct stream URL.
 
 I built this primarily to power two of my personal projects:
 * 📱 A WhatsApp bot
@@ -42,8 +42,8 @@ Responses
 Environment variables can be set in `.env` or via Docker (see `.env.template` for all available environment variables).
 
 # 📜 Requirements
-* Go 1.22+ (if building locally without Docker)
-* yt-dlp (if deploying locally without Docker)
+* [Go 1.22+](https://go.dev/doc/install) (if building locally without Docker)
+* [yt-dlp](https://github.com/yt-dlp/yt-dlp) (if deploying locally without Docker)
 
 #🤝 Contributing
 Contributions are welcome! Feel free to open issues or submit PRs if you’d like to add features or fix bugs.
