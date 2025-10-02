@@ -3,7 +3,7 @@ A lightweight Golang API that uses [yt-dlp](https://github.com/yt-dlp/yt-dlp) to
 
 I built this primarily to power two of my personal projects:
 * 📱 A WhatsApp bot
-* 🎶 A Discord music bot
+* 🎶 A Discord music bot\
 But it can be used in any project that needs direct access to media streams without dealing with YouTube’s player logic.
 
 # 🚀 Features
@@ -18,22 +18,22 @@ But it can be used in any project that needs direct access to media streams with
 git clone https://github.com/zwepener/yt-dlp-api.git
 cd yt-dlp-api
 ```
-2. Build with Docker  
+2. Build with Docker\
 You can build and run the API using Docker:
 ```
 docker build -t yt-dlp-api .
 docker run -p 8080:8080 yt-dlp-api
 ```
-The API will be available at:  
+The API will be available at:\
 👉 `http://localhost:8080`  
-3. Using docker-compose  
+3. Using docker-compose\
 If you prefer using `docker-compose`, simply run:  
 ```
 docker-compose up --build
 ```
 
 # 🔌 API Usage
-Endpoint  
+Endpoint\
 `POST /resolve`  
 Request body
 ```
