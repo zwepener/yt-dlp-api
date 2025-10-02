@@ -43,12 +43,18 @@ You can build and run the API using Docker:
 
 **Endpoint**: `POST /resolve`<br/><br/>
 **Request Body:**
+
+The request body must consist of an array of urls.
+
 ```json
 [
   "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 ]
 ```
 **Response:**
+
+If a given url could not be resolved into its streaming url, it will be omitted from the result.
+
 ```json
 {
   "https://www.youtube.com/watch?v=dQw4w9WgXcQ": "https://rr2---sn-woc7kn7y.googlevideo.com/videoplayback?..."
