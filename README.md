@@ -18,21 +18,23 @@ But it can be used in any project that needs direct access to media streams with
 git clone https://github.com/zwepener/yt-dlp-api.git
 cd yt-dlp-api
 ```
-2. Build with Docker
+2. Build with Docker  
 You can build and run the API using Docker:
 ```
 docker build -t yt-dlp-api .
 docker run -p 8080:8080 yt-dlp-api
 ```
-The API will be available at:
-👉 `http://localhost:8080`
-3. Using docker-compose
-If you prefer using `docker-compose`, simply run:
-`docker-compose up --build`
+The API will be available at:  
+👉 `http://localhost:8080`  
+3. Using docker-compose  
+If you prefer using `docker-compose`, simply run:  
+```
+docker-compose up --build
+```
 
 # 🔌 API Usage
-Endpoint
-`POST /resolve`
+Endpoint  
+`POST /resolve`  
 Request body
 ```
 [
