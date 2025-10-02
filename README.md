@@ -35,7 +35,7 @@ You can build and run the API using Docker:
 4. **Using docker-compose**<br/>
     If you prefer using `docker-compose`, simply run:
     ```bash
-    docker-compose up --build
+    docker compose up --build
     ```
     This will also start a `redis` container. The api uses this service to cache resolved urls for a set period.
 
