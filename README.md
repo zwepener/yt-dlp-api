@@ -1,4 +1,4 @@
-#🎵 yt-dlp Stream Resolver API
+# 🎵 yt-dlp Stream Resolver API
 A lightweight Golang API that uses yt-dlp to resolve a given video URL (YouTube, etc.) into a direct stream URL.
 
 I built this primarily to power two of my personal projects:
@@ -6,13 +6,13 @@ I built this primarily to power two of my personal projects:
 * 🎶 A Discord music bot
 But it can be used in any project that needs direct access to media streams without dealing with YouTube’s player logic.
 
-#🚀 Features
+# 🚀 Features
 * Exposes a simple REST API to resolve media links.
 * Uses `yt-dlp` under the hood for wide compatibility.
 * Lightweight, containerized with Docker.
 * Ready-to-use with `docker-compose`.
 
-#📦 Getting Started
+# 📦 Getting Started
 1. Clone the repository
 `git clone https://github.com/zwepener/yt-dlp-api.git
 cd yt-dlp-api`
@@ -26,7 +26,7 @@ The API will be available at:
 If you prefer using `docker-compose`, simply run:
 `docker-compose up --build`
 
-#🔌 API Usage
+# 🔌 API Usage
 Endpoint
 `POST /resolve`
 Request body
@@ -38,10 +38,10 @@ Responses
   "https://www.youtube.com/watch?v=dQw4w9WgXcQ": "https://rr2---sn-woc7kn7y.googlevideo.com/videoplayback?..."
 }`
 
-#🛠 Configuration
+# 🛠 Configuration
 Environment variables can be set in `.env` or via Docker (see `.env.template` for all available environment variables).
 
-#📜 Requirements
+# 📜 Requirements
 * Go 1.22+ (if building locally without Docker)
 * yt-dlp (if deploying locally without Docker)
 
