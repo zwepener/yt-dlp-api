@@ -80,6 +80,7 @@ nano .env
 Some ideas I’d like to work on in the future:
 - [x] Add support for batch URL resolution.
 - [x] Implement caching to reduce repeated yt-dlp calls.
+- [x] Clean urls before caching for more consistent caching.
 - [ ] Hash urls for redis cache keys.
 - [ ] Adopt [gin](https://gin-gonic.com/) for easier maintentance.
 - [ ] Add health checks and better error handling.
