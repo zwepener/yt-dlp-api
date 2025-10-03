@@ -3,6 +3,8 @@ package main
 import (
 	"bufio"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -62,6 +64,7 @@ func main() {
 	if err := redisClient.Ping(ctx).Err(); err != nil {
 		redisClient = nil
 		log.Printf("failed to connect to redis at %s: %v", redisAddr, err)
+		log.Print("Caching will be disabled.")
 	}
 
 	http.HandleFunc("/resolve", resolveHandler)
@@ -131,7 +134,9 @@ func resolveHandler(res http.ResponseWriter, req *http.Request) {
 }
 
 func resolveWithCache(url_ string) (string, error) {
-	cacheKey := "yt-dlp:" + url_
+	cacheKey := "yt-dlp:" + hashURL(url_)
+
+	log.Print(cacheKey)
 
 	if redisClient != nil {
 		val, err := redisClient.Get(ctx, cacheKey).Result()
@@ -269,4 +274,9 @@ func cleanUrl(rawUrl string) (string, error) {
 	url_.RawQuery = q.Encode()
 
 	return url_.String(), nil
+}
+
+func hashURL(url_ string) string {
+	hash := sha256.Sum256([]byte(url_))
+	return hex.EncodeToString(hash[:])
 }
