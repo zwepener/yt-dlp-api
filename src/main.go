@@ -60,7 +60,8 @@ func main() {
 	})
 
 	if err := redisClient.Ping(ctx).Err(); err != nil {
-		log.Fatalf("failed to connect to redis at %s: %v", redisAddr, err)
+		redisClient = nil
+		log.Printf("failed to connect to redis at %s: %v", redisAddr, err)
 	}
 
 	http.HandleFunc("/resolve", resolveHandler)
@@ -132,9 +133,11 @@ func resolveHandler(res http.ResponseWriter, req *http.Request) {
 func resolveWithCache(url_ string) (string, error) {
 	cacheKey := "yt-dlp:" + url_
 
-	val, err := redisClient.Get(ctx, cacheKey).Result()
-	if err == nil && strings.TrimSpace(val) != "" {
-		return val, nil
+	if redisClient != nil {
+		val, err := redisClient.Get(ctx, cacheKey).Result()
+		if err == nil && strings.TrimSpace(val) != "" {
+			return val, nil
+		}
 	}
 
 	streamURL, err := runYtDlp(url_)
@@ -142,9 +145,11 @@ func resolveWithCache(url_ string) (string, error) {
 		return "", err
 	}
 
-	err = redisClient.Set(ctx, cacheKey, streamURL, cacheTTL).Err()
-	if err != nil {
-		log.Printf("warning: failed to set cache for %s: %v", url_, err)
+	if redisClient != nil {
+		err = redisClient.Set(ctx, cacheKey, streamURL, cacheTTL).Err()
+		if err != nil {
+			log.Printf("warning: failed to set cache for %s: %v", url_, err)
+		}
 	}
 
 	return streamURL, nil
