@@ -20,28 +20,68 @@ But it can be used in any project that needs direct access to media streams with
 
 ---
 
+## 📜 Requirements
+
+> [!IMPORTANT]
+> Although it is not strictly required to have a redis service, it is highly recommended as the API uses it to cache resolved urls to reduce calls to the internet (YouTube, Instagram, Facebook, etc.).
+
+### When deploying using Docker (or Docker Compose)
+
+* [Docker Engine](https://docs.docker.com/engine/install/) installed on host machine
+* [Docker Compose](https://docs.docker.com/compose/install/linux/) plugin for docker engine (only if you plan on using docker compose)
+
+### When deploying directly to host machine
+* [Go 1.22+](https://go.dev/doc/install) installed on host machine
+* [yt-dlp](https://github.com/yt-dlp/yt-dlp) installed on host machine
+
+---
+
 ## 📦 Getting Started
 
-1. **Clone the repository:**
-    ```bash
-    git clone https://github.com/zwepener/yt-dlp-api.git
-    cd yt-dlp-api
-    ```
+### 1. Clone the repository
 
-2. **Build with Docker:**<br/>
-You can build and run the API using Docker:
-    ```bash
-    docker build -t yt-dlp-api .
-    docker run -p 8080:8080 yt-dlp-api
-    ```
-    The API will be available at: 👉 `http://localhost:8080`
+```bash
+git clone https://github.com/zwepener/yt-dlp-api.git
+cd yt-dlp-api
+```
 
-4. **Using docker-compose**<br/>
-    If you prefer using `docker-compose`, simply run:
-    ```bash
-    docker compose up --build
-    ```
-    This will also start a `redis` container. The api uses this service to cache resolved urls for a set period.
+### 2. Configure
+
+Create a copy of the included [`.env.template`](.env.template) file:
+```bash
+cp .env.template .env
+```
+You can edit your `.env` file according to your needs.
+
+### 3. Deploy
+
+> [!IMPORTANT]
+> If you don't want to use docker compose, you will have to either host your own redis service or manually start and configure a redis container seperately.
+> If you have your own redis service and you want to use docker compose, you will need to modify the existing [`docker-compose.yml`](docker-compose.yml) file to remove my redis service or use your own `docker-compose.yml` file entirely.
+
+#### Using Docker Compose (Recommended)
+
+```bash
+docker compose up --detach --build
+docker compose logs --follow api
+```
+This will also start a `redis` container. The api uses this service to cache resolved urls for a set period.
+
+#### Using Docker
+
+```bash
+docker build --tag yt-dlp-api .
+docker run --detach --publish 8080:8080 yt-dlp-api
+docker logs --follow yt-dlp-api
+```
+
+#### Directly on Host Machine
+
+```bash
+go build -o ./api ./src
+chmod +x ./api
+./api
+```
 
 ---
 
@@ -65,16 +105,6 @@ If a given url could not be resolved into its streaming url, it will be omitted 
 
 ---
 
-## 🛠 Configuration
-
-Environment variables can be set in `.env` or via Docker (see [`.env.template`](.env.template) for all available environment variables).
-```bash
-cp .env.template .env
-nano .env
-```
-
----
-
 ## 🔮 Future Plans
 
 Some ideas I’d like to work on in the future:
@@ -82,22 +112,6 @@ Some ideas I’d like to work on in the future:
 - [ ] Adopt [gin](https://gin-gonic.com/) for easier maintentance.
 - [ ] Implement proper logging.
 - [ ] Add health checks and better error handling.
-
----
-
-## 📜 Requirements
-
-> [!IMPORTANT]
-> Although it is not strictly required to have a redis service, it is highly recommended as the API uses it to cache resolved urls to reduce calls to the internet (YouTube, Instagram, Facebook, etc.).
-
-### Using Docker
-
-* [Docker Engine](https://docs.docker.com/engine/install/)
-* [Docker Compose](https://docs.docker.com/compose/install/linux/) plugin for docker engine (only if you plan on using docker compose)
-
-### No Docker
-* [Go 1.22+](https://go.dev/doc/install)
-* [yt-dlp](https://github.com/yt-dlp/yt-dlp)
 
 ---
 
