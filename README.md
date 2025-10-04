@@ -23,7 +23,7 @@ But it can be used in any project that needs direct access to media streams with
 ## 📜 Requirements
 
 > [!IMPORTANT]
-> Although it is not strictly required to have a redis service, it is highly recommended as the API uses it to cache resolved urls to reduce calls to the internet (YouTube, Instagram, Facebook, etc.).
+> Although it is not strictly required to have a redis service, it is highly recommended as the API uses it to cache resolved urls to reduce requests to the internet (YouTube, Instagram, Facebook, etc.).
 
 ### When deploying using Docker (or Docker Compose)
 
