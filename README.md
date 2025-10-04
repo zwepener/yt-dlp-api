@@ -78,9 +78,9 @@ docker logs --follow yt-dlp-api
 #### Directly on Host Machine
 
 ```bash
-go build -o ./api ./src
-chmod +x ./api
-./api
+go build -o ./dist/api ./src
+chmod +x ./dist/api
+./dist/api
 ```
 
 ---
