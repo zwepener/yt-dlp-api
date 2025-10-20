@@ -1,41 +1,51 @@
 services:
-  kv:
+  redis:
     image: redis:alpine
-    container_name: yt-dlp-kv
-    env_file: .env
+    container_name: yt-dlp-redis
     volumes:
       - kv-data:/data
-    ports:
-      - "${REDIS_PORT}:6379"
+    expose:
+      - "6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
     deploy:
       restart_policy:
-        condition: on-failure
+        condition: unless-stopped
         delay: 5s
-        max_attempts: 3
-        window: 120s 
+        window: 120s
 
   api:
-    build: 
-      dockerfile: Dockerfile
-      context: .
+    build: .
     image: yt-dlp-api
     container_name: yt-dlp-api
     depends_on:
-      - kv
+      redis:
+        condition: service_healthy
+    environment:
+      REDIS_ADDR: "redis:6379"
     env_file: .env
     ports:
       - "${SERVER_PORT}:8080"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/heartbeat" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
     deploy:
       restart_policy:
-        condition: on-failure
+        condition: unless-stopped
         delay: 5s
-        max_attempts: 3
         window: 120s
 
 volumes:
   kv-data:
 
-networks:
-  default:
-    external: true
-    name: shared-net
+#networks:
+#  default:
+#    external: true
+#    name: shared-net
