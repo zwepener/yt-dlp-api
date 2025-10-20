@@ -28,7 +28,6 @@ var (
 
 var (
 	redisAddr      string
-	redisPassword  string
 	cacheTTL       time.Duration
 	serverAddr     string
 	ytDlpCmd       string
@@ -43,7 +42,6 @@ func init_env() {
 	}
 
 	redisAddr = getEnv("REDIS_ADDR", "localhost:6379")
-	redisPassword = getEnv("REDIS_PASSWORD", "")
 	cacheTTL = getEnvDuration("CACHE_TTL", 6*time.Hour)
 	serverAddr = getEnv("SERVER_ADDR", ":8080")
 	ytDlpCmd = getEnv("YTDLP_CMD", "yt-dlp")
@@ -56,9 +54,8 @@ func main() {
 
 	log.Println("connecting to redis client . . .")
 	redisClient = redis.NewClient(&redis.Options{
-		Addr:     redisAddr,
-		Password: redisPassword,
-		DB:       0,
+		Addr: redisAddr,
+		DB:   0,
 	})
 
 	if err := redisClient.Ping(ctx).Err(); err != nil {
@@ -68,11 +65,16 @@ func main() {
 	}
 
 	http.HandleFunc("/resolve", resolveHandler)
+	http.HandleFunc("/heartbeat", pingHandler)
 
 	log.Printf("server listening on %s", serverAddr)
 	if err := http.ListenAndServe(serverAddr, nil); err != nil {
 		log.Fatalf("server exited: %v", err)
 	}
+}
+
+func pingHandler(res http.ResponseWriter, req *http.Request) {
+	res.WriteHeader(http.StatusOK)
 }
 
 func resolveHandler(res http.ResponseWriter, req *http.Request) {
