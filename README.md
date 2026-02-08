@@ -41,7 +41,7 @@ But it can be used in any project that needs direct access to media streams with
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/zwepener/yt-dlp-api.git
+git clone https://github.com/zwepener/yt-dlp-rest-api.git
 cd yt-dlp-api
 ```
 
@@ -70,17 +70,17 @@ This will also start a `redis` container. The api uses this service to cache res
 #### Using Docker
 
 ```bash
-docker build --tag yt-dlp-api .
-docker run --detach --publish 8080:8080 yt-dlp-api
-docker logs --follow yt-dlp-api
+docker build --tag yt-dlp-rest-api .
+docker run --detach --publish 8080:8080 yt-dlp-rest-api
+docker logs --follow yt-dlp-rest-api
 ```
 
 #### Directly on Host Machine
 
 ```bash
-go build -o ./dist/api ./src
-chmod +x ./dist/api
-./dist/api
+go build -o ./dist/app ./src
+chmod +x ./dist/app
+./dist/app
 ```
 
 ---
