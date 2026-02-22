@@ -11,6 +11,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /app/main ./
 FROM python:3.13-alpine AS runner
 WORKDIR /app
 
+RUN apk update && apk add --no-cache curl
 RUN pip install --no-cache-dir yt-dlp
 
 COPY --from=builder /app/main /app/api
