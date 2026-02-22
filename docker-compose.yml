@@ -1,23 +1,4 @@
 services:
-  redis:
-    image: redis:alpine
-    container_name: yt-dlp-redis
-    volumes:
-      - kv-data:/data
-    expose:
-      - "6379"
-    healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-      start_period: 10s
-    deploy:
-      restart_policy:
-        condition: unless-stopped
-        delay: 5s
-        window: 120s
-
   api:
     build: .
     image: yt-dlp-api
@@ -38,11 +19,3 @@ services:
         condition: unless-stopped
         delay: 5s
         window: 120s
-
-volumes:
-  kv-data:
-
-#networks:
-#  default:
-#    external: true
-#    name: shared-net
