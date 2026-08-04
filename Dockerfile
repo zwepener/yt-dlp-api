@@ -1,22 +1,25 @@
 FROM golang:1.25-alpine AS builder
 WORKDIR /app
 
-COPY go.mod .
-COPY go.sum .
+COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /app/main ./src
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o ./api ./src
 
-FROM python:3.13-alpine AS runner
+
+FROM debian:bookworm-slim AS ytdlp
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates && \
+    curl -L "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux" -o /yt-dlp && \
+    chmod +x /yt-dlp
+
+
+FROM gcr.io/distroless/base-debian12 AS runner
 WORKDIR /app
 
-RUN apk update && apk add --no-cache curl
-RUN pip install --no-cache-dir yt-dlp
-
-COPY --from=builder /app/main /app/api
-RUN chmod +x /app/api
+COPY --from=builder /app/api ./api
+COPY --from=ytdlp /yt-dlp /usr/local/bin/yt-dlp
 
 EXPOSE 8080
 
-ENTRYPOINT ["/app/api"]
+ENTRYPOINT ["./api"]
