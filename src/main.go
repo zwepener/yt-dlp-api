@@ -36,7 +36,6 @@ var (
 )
 
 func init_env() {
-	log.Println("loading environment variables . . .")
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, relying on system environment variables!")
 	}
