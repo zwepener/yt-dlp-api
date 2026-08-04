@@ -27,9 +27,7 @@ var (
 )
 
 var (
-	redisAddr      string
 	cacheTTL       time.Duration
-	serverAddr     string
 	ytDlpCmd       string
 	perCallTimeout time.Duration
 	maxConcurrency int
@@ -40,9 +38,7 @@ func init_env() {
 		log.Println("No .env file found, relying on system environment variables!")
 	}
 
-	redisAddr = getEnv("REDIS_ADDR", "localhost:6379")
 	cacheTTL = getEnvDuration("CACHE_TTL", 6*time.Hour)
-	serverAddr = getEnv("SERVER_ADDR", ":8080")
 	ytDlpCmd = getEnv("YTDLP_CMD", "yt-dlp")
 	perCallTimeout = getEnvDuration("YTDLP_TIMEOUT", 15*time.Second)
 	maxConcurrency = getEnvInt("MAX_CONCURRENCY", 8)
@@ -51,9 +47,11 @@ func init_env() {
 func main() {
 	init_env()
 
-	log.Println("connecting to redis client . . .")
+	redisAddr := getEnv("REDIS_ADDR", "localhost:6379")
+
 	redisClient = redis.NewClient(&redis.Options{
 		Addr: redisAddr,
+		Password: getEnv("REDIS_PASSWORD", ""),
 		DB:   0,
 	})
 
@@ -61,11 +59,14 @@ func main() {
 		redisClient = nil
 		log.Printf("failed to connect to redis at %s: %v", redisAddr, err)
 		log.Print("Caching will be disabled.")
+	} else {
+		log.Printf("connected to redis at %s", redisAddr)
 	}
 
 	http.HandleFunc("/resolve", resolveHandler)
-	http.HandleFunc("/heartbeat", pingHandler)
+	http.HandleFunc("/ping", pingHandler)
 
+	serverAddr := fmt.Sprintf(":%s", getEnv("PORT", "8080"))
 	log.Printf("server listening on %s", serverAddr)
 	if err := http.ListenAndServe(serverAddr, nil); err != nil {
 		log.Fatalf("server exited: %v", err)
