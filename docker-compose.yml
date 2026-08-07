@@ -6,12 +6,17 @@ services:
     environment:
       REDIS_ADDR: "redis:6379"
     env_file: .env
+    expose:
+      - "8080"
     networks:
+      - urlasso-api_net
       - data_net
     ports:
       - "${SERVER_PORT}:8080"
     restart: unless-stopped
 
 networks:
+  urlasso-api_net:
+    name: urlasso-api_net
   data_net:
     external: true
