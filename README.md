@@ -41,8 +41,8 @@ But it can be used in any project that needs direct access to media streams with
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/zwepener/yt-dlp-rest-api.git
-cd yt-dlp-api
+git clone https://github.com/zwepener/urlasso-api.git
+cd urlasso-api
 ```
 
 ### 2. Configure
@@ -70,9 +70,9 @@ This will also start a `redis` container. The api uses this service to cache res
 #### Using Docker
 
 ```bash
-docker build --tag yt-dlp-rest-api .
-docker run --detach --publish 8080:8080 yt-dlp-rest-api
-docker logs --follow yt-dlp-rest-api
+docker build --tag urlasso-api .
+docker run --detach --publish 8080:8080 urlasso-api
+docker logs --follow urlasso-api
 ```
 
 #### Directly on Host Machine
@@ -99,7 +99,7 @@ The request body must consist of an array of urls.
 If a given url could not be resolved into its streaming url, it will be omitted from the result.
 ```json
 {
-  "https://www.youtube.com/watch?v=dQw4w9WgXcQ": "https://rr2---sn-woc7kn7y.googlevideo.com/videoplayback?..."
+  "https://www.youtube.com/watch?v=dQw4w9WgXcQ": "https://___.googlevideo.com/videoplayback?___"
 }
 ```
 
