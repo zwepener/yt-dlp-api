@@ -65,7 +65,6 @@ You can edit your `.env` file according to your needs.
 docker compose up --detach --build
 docker compose logs --follow api
 ```
-This will also start a `redis` container. The api uses this service to cache resolved urls for a set period.
 
 #### Using Docker
 
