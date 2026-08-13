@@ -23,6 +23,4 @@ COPY --from=ytdlp /yt-dlp /usr/local/bin/yt-dlp
 # Additional libraries required by yt-dlp
 COPY --from=ytdlp /usr/lib/x86_64-linux-gnu/libz.so.1 /usr/lib/x86_64-linux-gnu/libz.so.1
 
-EXPOSE 8080
-
 ENTRYPOINT ["./api"]
