@@ -17,6 +17,7 @@ var (
 	YTDLP_TMO time.Duration
 	YTDLP_MCP int
 
+	REDIS_ON  bool
 	REDIS_ADR string
 	REDIS_USR string
 	REDIS_PWD string
@@ -28,41 +29,44 @@ func Init() {
 		log.Println("No .env file found, relying on system environment variables!")
 	}
 
-	HOST = getStrEnv("SERVER_HOST", "0.0.0.0")
-	PORT = getStrEnv("SERVER_PORT", "8080")
+	HOST, _ = getStrEnv("SERVER_HOST", "0.0.0.0")
+	PORT, _ = getStrEnv("SERVER_PORT", "8080")
 
-	YTDLP_CMD = getStrEnv("YTDLP_CMD", "yt-dlp")
-	YTDLP_TMO = getDurEnv("YTDLP_TMO", 15*time.Second)
-	YTDLP_MCP = getIntEnv("YTDLP_MCP", 2)
+	YTDLP_CMD, _ = getStrEnv("YTDLP_CMD", "yt-dlp")
+	YTDLP_TMO, _ = getDurEnv("YTDLP_TMO", 15*time.Second)
+	YTDLP_MCP, _ = getIntEnv("YTDLP_MCP", 2)
 
-	REDIS_ADR = getStrEnv("REDIS_ADR", "localhost:6379")
-	REDIS_USR = getStrEnv("REDIS_USR", "default")
-	REDIS_PWD = getStrEnv("REDIS_PWD", "")
-	CACHE_TTL = getDurEnv("CACHE_TTL", 6*time.Hour)
+	REDIS_ADR, REDIS_ON = getStrEnv("REDIS_ADR", "localhost:6379")
+	REDIS_USR, _ = getStrEnv("REDIS_USR", "default")
+	REDIS_PWD, _ = getStrEnv("REDIS_PWD", "")
+	CACHE_TTL, _ = getDurEnv("CACHE_TTL", 6*time.Hour)
 }
 
-func getStrEnv(key, fallback string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
+func getStrEnv(key string, fallback string) (string, bool) {
+	value, exists := os.LookupEnv(key)
+	if value != "" {
+		return value, exists
 	}
-	return fallback
+	return fallback, exists
 }
 
-func getDurEnv(key string, fallback time.Duration) time.Duration {
-	if v := os.Getenv(key); v != "" {
-		if d, err := time.ParseDuration(v); err == nil {
-			return d
+func getDurEnv(key string, fallback time.Duration) (time.Duration, bool) {
+	value, exists := os.LookupEnv(key)
+	if value != "" {
+		if d, err := time.ParseDuration(value); err == nil {
+			return d, exists
 		}
 	}
-	return fallback
+	return fallback, exists
 }
 
-func getIntEnv(key string, fallback int) int {
-	if v := os.Getenv(key); v != "" {
+func getIntEnv(key string, fallback int) (int, bool) {
+	value, exists := os.LookupEnv(key)
+	if value != "" {
 		var i int
-		if _, err := fmt.Sscanf(v, "%d", &i); err == nil {
-			return i
+		if _, err := fmt.Sscanf(value, "%d", &i); err == nil {
+			return i, exists
 		}
 	}
-	return fallback
+	return fallback, exists
 }
