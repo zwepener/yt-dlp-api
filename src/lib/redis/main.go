@@ -1,7 +1,6 @@
 package redis
 
 import (
-	"context"
 	"log"
 	"time"
 
@@ -32,29 +31,4 @@ func Init(address string, username string, password string) {
 		MinRetryBackoff: 1 * time.Second,
 		MaxRetryBackoff: 10 * time.Second,
 	})
-
-	go func() {
-		ticker := time.NewTicker(5 * time.Second)
-		defer ticker.Stop()
-		for range ticker.C {
-			retryPing(RDB, 5)
-		}
-	}()
-}
-
-func retryPing(rdb *redis.Client, maxRetries int) {
-	timeout := 2 * time.Second
-	for i := range maxRetries {
-		ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
-		err := rdb.Ping(ctx).Err()
-		cancel()
-
-		if err == nil {
-			return
-		}
-		log.Printf("Redis ping attempt %d failed: %v", i+1, err)
-
-		time.Sleep(timeout)
-	}
-	log.Println("Redis ping failed after retries")
 }
