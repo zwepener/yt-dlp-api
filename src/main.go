@@ -11,62 +11,31 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"os/exec"
 	"strings"
 	"sync"
-	"time"
 
-	"github.com/joho/godotenv"
-	"github.com/redis/go-redis/v9"
+	"urlasso-api/src/lib/env"
+	"urlasso-api/src/lib/redis"
 )
 
 var (
-	redisClient *redis.Client
-	ctx         = context.Background()
+	ctx = context.Background()
 )
-
-var (
-	cacheTTL       time.Duration
-	ytDlpCmd       string
-	perCallTimeout time.Duration
-	maxConcurrency int
-)
-
-func init_env() {
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found, relying on system environment variables!")
-	}
-
-	cacheTTL = getEnvDuration("CACHE_TTL", 6*time.Hour)
-	ytDlpCmd = getEnv("YTDLP_CMD", "yt-dlp")
-	perCallTimeout = getEnvDuration("YTDLP_TIMEOUT", 15*time.Second)
-	maxConcurrency = getEnvInt("MAX_CONCURRENCY", 8)
-}
 
 func main() {
-	init_env()
+	env.Init()
 
-	redisAddr := getEnv("REDIS_ADDR", "localhost:6379")
-
-	redisClient = redis.NewClient(&redis.Options{
-		Addr: redisAddr,
-		Password: getEnv("REDIS_PASSWORD", ""),
-		DB:   0,
-	})
-
-	if err := redisClient.Ping(ctx).Err(); err != nil {
-		redisClient = nil
-		log.Printf("failed to connect to redis at %s: %v", redisAddr, err)
-		log.Print("Caching will be disabled.")
-	} else {
-		log.Printf("connected to redis at %s", redisAddr)
-	}
+	redis.Init(
+		env.REDIS_ADR,
+		env.REDIS_USR,
+		env.REDIS_PWD,
+	)
 
 	http.HandleFunc("/resolve", resolveHandler)
 	http.HandleFunc("/ping", pingHandler)
 
-	serverAddr := fmt.Sprintf(":%s", getEnv("PORT", "8080"))
+	serverAddr := fmt.Sprintf("%s:%s", env.HOST, env.PORT)
 	log.Printf("server listening on %s", serverAddr)
 	if err := http.ListenAndServe(serverAddr, nil); err != nil {
 		log.Fatalf("server exited: %v", err)
@@ -97,13 +66,13 @@ func resolveHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	sem := make(chan struct{}, maxConcurrency) // sem = semaphore
+	sem := make(chan struct{}, env.YTDLP_MCP)
 	var waitGroup sync.WaitGroup
 	mutex := sync.Mutex{}
 	result := make(map[string]string)
 
 	for _, url_ := range urls {
-		url_, err := cleanUrl(url_)
+		url_, err := _cleanUrl(url_)
 		if err != nil {
 			continue
 		}
@@ -114,7 +83,7 @@ func resolveHandler(res http.ResponseWriter, req *http.Request) {
 			sem <- struct{}{}
 			defer func() { <-sem }()
 
-			streamUrl, err := resolveWithCache(url_)
+			streamUrl, err := _resolveWithCache(url_)
 			if err != nil {
 				log.Printf("could not resolve %s: %v", url_, err)
 				return
@@ -135,44 +104,39 @@ func resolveHandler(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func resolveWithCache(url_ string) (string, error) {
-	cacheKey := "yt-dlp:" + hashURL(url_)
+func _resolveWithCache(url_ string) (string, error) {
+	var err error
 
-	log.Print(cacheKey)
+	cacheKey := "urlasso:" + _hashURL(url_)
 
-	if redisClient != nil {
-		val, err := redisClient.Get(ctx, cacheKey).Result()
-		if err == nil && strings.TrimSpace(val) != "" {
-			return val, nil
-		}
+	val, err := redis.RDB.Get(ctx, cacheKey).Result()
+	if err == nil && strings.TrimSpace(val) != "" {
+		return val, nil
 	}
 
-	streamURL, err := runYtDlp(url_)
+	streamUrl, err := _runYtDlp(url_)
 	if err != nil {
 		return "", err
 	}
 
-	if redisClient != nil {
-		err = redisClient.Set(ctx, cacheKey, streamURL, cacheTTL).Err()
-		if err != nil {
-			log.Printf("warning: failed to set cache for %s: %v", url_, err)
-		}
+	err = redis.RDB.Set(ctx, cacheKey, streamUrl, env.CACHE_TTL).Err()
+	if err != nil {
 	}
 
-	return streamURL, nil
+	return streamUrl, nil
 }
 
-func runYtDlp(url_ string) (string, error) {
+func _runYtDlp(url_ string) (string, error) {
 	if url_ == "" {
 		return "", errors.New("empty url")
 	}
 
-	cctx, cancel := context.WithTimeout(ctx, perCallTimeout)
+	cctx, cancel := context.WithTimeout(ctx, env.YTDLP_TMO)
 	defer cancel()
 
 	cmd := exec.CommandContext(
 		cctx,
-		ytDlpCmd,
+		env.YTDLP_CMD,
 		"--get-url", "--no-playlist", "--no-warnings", "--no-cache-dir",
 		url_,
 	)
@@ -187,10 +151,10 @@ func runYtDlp(url_ string) (string, error) {
 		return "", fmt.Errorf("failed to start yt-dlp: %w", err)
 	}
 
-	scanner := bufio.NewScanner(stdout)
+	scannerOut := bufio.NewScanner(stdout)
 	var firstLine string
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
+	for scannerOut.Scan() && scannerOut.Err() == nil {
+		line := strings.TrimSpace(scannerOut.Text())
 		if line != "" {
 			firstLine = line
 			break
@@ -198,9 +162,9 @@ func runYtDlp(url_ string) (string, error) {
 	}
 
 	errBuf := new(strings.Builder)
-	serr := bufio.NewScanner(stderr)
-	for serr.Scan() {
-		errBuf.WriteString(serr.Text())
+	scannerErr := bufio.NewScanner(stderr)
+	for scannerErr.Scan() && scannerErr.Err() == nil {
+		errBuf.WriteString(scannerErr.Text())
 		errBuf.WriteByte('\n')
 	}
 
@@ -219,38 +183,11 @@ func runYtDlp(url_ string) (string, error) {
 	return firstLine, nil
 }
 
-func getEnv(key, fallback string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return fallback
-}
-
-func getEnvDuration(key string, fallback time.Duration) time.Duration {
-	if v := os.Getenv(key); v != "" {
-		if d, err := time.ParseDuration(v); err == nil {
-			return d
-		}
-	}
-	return fallback
-}
-
-func getEnvInt(key string, fallback int) int {
-	if v := os.Getenv(key); v != "" {
-		var i int
-		_, err := fmt.Sscanf(v, "%d", &i)
-		if err == nil {
-			return i
-		}
-	}
-	return fallback
-}
-
-/**
- * Removes unnecessary query parameters from a given url. Primarily for caching purposes
- * Raises an error if the provided url string is empty or otherwise invalid.
- */
-func cleanUrl(rawUrl string) (string, error) {
+/*
+Removes unnecessary query parameters from a given url. Primarily for caching purposes.
+Raises an error if the provided url string is empty or otherwise invalid.
+*/
+func _cleanUrl(rawUrl string) (string, error) {
 	rawUrl = strings.TrimSpace(rawUrl)
 	if rawUrl == "" {
 		return "", errors.New("url is empty")
@@ -278,7 +215,7 @@ func cleanUrl(rawUrl string) (string, error) {
 	return url_.String(), nil
 }
 
-func hashURL(url_ string) string {
+func _hashURL(url_ string) string {
 	hash := sha256.Sum256([]byte(url_))
 	return hex.EncodeToString(hash[:])
 }
